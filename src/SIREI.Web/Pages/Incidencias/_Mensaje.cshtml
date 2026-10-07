@@ -1,0 +1,5 @@
+@model (Mensaje Mensaje, DateTimeOffset Ahora)
+<div class="mensaje">
+<p class="mensaje-autor">@Model.Mensaje.Autor · @Presentacion.Hora(Model.Mensaje.Fecha, Model.Ahora)</p>
+<p class="bubble texto-con-saltos">@Model.Mensaje.Texto</p>
+</div>

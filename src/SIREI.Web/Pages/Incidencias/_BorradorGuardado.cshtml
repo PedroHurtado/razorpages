@@ -1,0 +1,6 @@
+@model SIREI.Web.Pages.Incidencias.ConsultaModel
+@* Respuesta htmx: el historial es el destino; aviso, fecha y estado de las notas van fuera de banda *@
+<partial name="_Historial" model="Model" />
+<partial name="_Aviso" model="new Aviso(Model.AvisoTexto, FueraDeBanda: true)" />
+<span id="actualizada" hx-swap-oob="true">@Model.Actualizada</span>
+<p id="f-notas-hint" hx-swap-oob="innerHTML">@Model.EstadoNotas</p>

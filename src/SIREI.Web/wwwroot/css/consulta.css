@@ -1,0 +1,65 @@
+/* ===== componentes de consulta ===== */
+.tabs{display:flex;flex-wrap:wrap;gap:4px;padding:0 16px;border-bottom:1px solid var(--c-border)}
+.tab{display:inline-flex;align-items:center;gap:8px;min-height:52px;padding:0 16px;border:0;border-bottom:3px solid transparent;background:transparent;font:inherit;font-weight:700;color:var(--c-text-muted);cursor:pointer;margin-bottom:-1px}
+.tab:hover{color:var(--c-text)}
+.tab[aria-selected="true"]{color:var(--c-primary);border-bottom-color:var(--c-primary)}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;margin:0}
+.dl dt{font-size:14px;font-weight:700;color:var(--c-text-muted)}
+.dl dd{margin:0}
+.bubble{max-width:80%;padding:10px 14px;border-radius:var(--r-md);background:var(--c-primary-soft)}
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.timeline li{display:grid;grid-template-columns:12px 1fr;gap:12px}
+.timeline .dot{width:12px;height:12px;margin-top:6px;border-radius:50%;background:var(--c-primary)}
+/* Diálogos: <dialog> nativo (trampa de foco, Esc y fondo inerte) con el aspecto de .scrim y .dialog del wireframe */
+.dialog{width:100%;max-width:min(520px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;border:0;color:var(--c-text);background:var(--c-surface);border-radius:var(--r-md);box-shadow:var(--shadow-3);padding:28px;flex-direction:column;gap:16px}
+.dialog[open]{display:flex}
+.dialog::backdrop{background:rgba(16,24,20,.55)}
+/* El input de fichero está oculto dentro de la etiqueta: el foco se muestra en la etiqueta */
+label.btn:focus-within{outline:3px solid var(--c-focus);outline-offset:2px}
+/* ===== página Consulta y sus parciales (_Mensaje, _Historial) ===== */
+/* Sin padding inferior: la barra de acciones fija ocupa ese hueco */
+.consulta{padding-bottom:0}
+.consulta-encabezado{gap:10px}
+.consulta-id{font-size:15px;color:var(--c-text-muted)}
+.consulta-etiquetas{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.consulta-fechas{font-size:14px;color:var(--c-text-muted)}
+.texto-con-saltos{white-space:pre-line}
+/* Descripción y adjuntos */
+.bloque-descripcion{padding:24px;display:flex;flex-direction:column;gap:12px}
+.bloque-descripcion h2{font-size:18px}
+.sin-adjuntos{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--c-text-muted)}
+.adjuntos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.adjuntos li{display:flex;align-items:center;gap:8px;font-size:14px}
+.adjuntos .i,.adjuntos .mono{color:var(--c-text-muted)}
+/* Paneles de las pestañas */
+.panel-pestana{padding:24px;display:flex;flex-direction:column;gap:24px}
+.mensajes{display:flex;flex-direction:column;gap:12px}
+.mensajes h3{font-size:17px}
+.registro-mensajes{min-height:120px;max-height:320px;overflow-y:auto;padding:16px;border:1px solid var(--c-border);border-radius:var(--r-md);background:var(--c-surface-alt);display:flex;flex-direction:column;gap:12px}
+.sin-mensajes{margin:auto;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--c-text-muted);text-align:center}
+.sin-mensajes .i{width:28px;height:28px}
+.mensaje{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.mensaje-autor{font-size:13px;color:var(--c-text-muted)}
+.form-mensaje{display:flex;flex-direction:column;gap:8px}
+.form-mensaje .label{margin:0}
+.form-mensaje textarea{min-height:88px}
+.form-mensaje .botonera{gap:8px}
+.notas-pie{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-top:8px}
+.notas-pie .hint{margin:0}
+.label-nota{font-weight:500;color:var(--c-text-muted)}
+.adjuntar-solucion{width:fit-content}
+/* Columna lateral: personas e historial */
+.ficha{padding:20px;display:flex;flex-direction:column;gap:16px}
+.ficha h2{font-size:17px}
+.ficha .dl{grid-template-columns:1fr}
+.dd-con-accion{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.historial-texto{font-weight:700}
+.historial-fecha{font-size:14px;color:var(--c-text-muted)}
+/* Barra de acciones fija: el margen negativo compensa el padding de .contenido */
+.barra-acciones{position:sticky;bottom:0;z-index:5;margin:0 -32px;padding:14px 32px;background:var(--c-surface);border-top:1px solid var(--c-border);box-shadow:0 -4px 12px rgba(16,24,20,.06);display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.barra-acciones-hueco{flex:1}
+/* Diálogos */
+.dialog h2{font-size:22px}
+.dialogo-cuerpo{display:flex;flex-direction:column;gap:10px}
+.cierre-resumen{padding:12px 14px;border-radius:var(--r-sm);background:var(--c-surface-alt);border:1px solid var(--c-border)}
+.cierre-resumen-titulo{font-size:14px;font-weight:700;color:var(--c-text-muted)}

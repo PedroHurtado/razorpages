@@ -1,0 +1,99 @@
+@model IndexModel
+@{
+    var r = Model.Resultado;
+    var urlResultados = Url.Page("/Index", "Resultados");
+}
+<input type="hidden" id="pagina-actual" name="pagina" value="@r.Pagina">
+@if (r.Total > 0)
+{
+<div class="resultados-tabla">
+<table class="table">
+<caption class="sr-only">Incidencias filtradas. @Model.TextoResumen</caption>
+<thead>
+<tr>
+<th scope="col">Id</th>
+<th scope="col">Incidencia</th>
+<th scope="col">Interesado</th>
+<th scope="col">Entrada</th>
+<th scope="col">Estado</th>
+<th scope="col">Prioridad</th>
+<th scope="col">Asignado a</th>
+<th scope="col"><span class="sr-only">Acciones</span></th>
+</tr>
+</thead>
+<tbody>
+@foreach (var fila in r.Filas)
+{
+    var urlConsulta = Url.Page("/Incidencias/Consulta", new { id = fila.Id });
+    var urlAsignar = Url.Page("/Index", "Asignar", new { id = fila.Id });
+    var asignado = fila.AsignadoA is null ? "Sin asignar" : fila.AsignadaAMi ? $"{fila.AsignadoA} (usted)" : fila.AsignadoA;
+<tr>
+<td class="mono celda-id">@fila.Id</td>
+<td class="celda-titulo"><a href="@urlConsulta">@fila.Titulo</a></td>
+<td><span class="celda-interesado">@fila.Interesado@if (fila.EsVip)
+{<span class="badge badge-plain b-vip"><icono nombre="star" class="i i-sm" />VIP</span>}</span></td>
+<td class="mono celda-fecha">@Presentacion.Fecha(fila.FechaEntrada)</td>
+<td><sirei-badge estado="fila.Estado" /></td>
+<td><sirei-badge prioridad="fila.Prioridad" /></td>
+<td class="@(fila.AsignadoA is null ? "celda-sin-asignar" : null)">@asignado</td>
+<td class="celda-acciones">
+@if (fila.Estado == EstadoIncidencia.Pendiente)
+{
+<form method="post" action="@urlAsignar" asp-antiforgery="true"
+      hx-post="@urlAsignar" hx-include="#filtros, #pagina-actual" hx-target="#resultados" data-foco="#ver-@fila.Id|#resumen"><button class="btn btn-secondary btn-compact" type="submit" aria-label="Asignarme la incidencia @fila.Id"><icono nombre="user-check" class="i i-sm" />Asignarme</button></form>
+}
+<a id="ver-@fila.Id" class="btn btn-ghost btn-compact" href="@urlConsulta" aria-label="Ver incidencia @fila.Id: @fila.Titulo"><icono nombre="eye" class="i i-sm" />Ver</a>
+</td>
+</tr>
+}
+</tbody>
+</table>
+</div>
+
+<nav class="paginacion" aria-label="Paginación">
+<div class="paginacion-tamano">
+<label for="f-size">Filas por página</label>
+<select class="input" id="f-size" name="tam" form="filtros"
+        hx-get="@urlResultados" hx-include="#filtros" hx-target="#resultados" data-foco="#f-size">
+@foreach (var tam in FiltroIncidencias.TamanosPermitidos)
+{
+<option value="@tam" selected="@(tam == r.Tamano)">@tam</option>
+}
+</select>
+</div>
+<div class="paginacion-paginas">
+<button id="pg-anterior" class="btn btn-ghost btn-compact" type="button" disabled="@(r.Pagina <= 1)"
+        hx-get="@urlResultados" hx-include="#filtros" hx-vals='{"pagina": @(r.Pagina - 1)}' hx-target="#resultados" data-foco="#pg-anterior|#pg-actual"><icono nombre="chevron-left" class="i i-sm" />Anterior</button>
+@for (var n = 1; n <= r.Paginas; n++)
+{
+<button id="@(n == r.Pagina ? "pg-actual" : null)" class="btn btn-ghost pg" type="button" aria-current="@(n == r.Pagina ? "page" : null)" aria-label="Página @n"
+        hx-get="@urlResultados" hx-include="#filtros" hx-vals='{"pagina": @n}' hx-target="#resultados" data-foco="#pg-actual">@n</button>
+}
+<button id="pg-siguiente" class="btn btn-ghost btn-compact" type="button" disabled="@(r.Pagina >= r.Paginas)"
+        hx-get="@urlResultados" hx-include="#filtros" hx-vals='{"pagina": @(r.Pagina + 1)}' hx-target="#resultados" data-foco="#pg-siguiente|#pg-actual">Siguiente<icono nombre="chevron-right" class="i i-sm" /></button>
+</div>
+</nav>
+}
+else
+{
+<div class="sin-resultados">
+<input type="hidden" name="tam" form="filtros" value="@r.Tamano">
+<icono nombre="search" class="i sin-resultados-icono" />
+<h2>No hay incidencias con estos filtros</h2>
+<p class="texto-secundario">Prueba a cambiar el estado o la prioridad, o restablece los filtros.</p>
+<button class="btn btn-secondary" type="button" data-preset="{}" data-foco="#f-texto">Restablecer filtros</button>
+</div>
+}
+@if (Model.EsFragmento)
+{
+<p id="resumen" hx-swap-oob="innerHTML">@Model.TextoResumen</p>
+@if (Model.ActualizarResumen)
+{
+<partial name="_Kpis" model="Model" />
+}
+@if (Model.AvisoTexto is not null)
+{
+<partial name="_Aviso" model="new Aviso(Model.AvisoTexto, FueraDeBanda: true)" />
+<div id="anuncio" hx-swap-oob="innerHTML">@Model.AvisoTexto</div>
+}
+}

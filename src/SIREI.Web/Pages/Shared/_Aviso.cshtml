@@ -1,0 +1,13 @@
+@model Aviso
+@if (Model.Texto is null)
+{
+<div id="aviso" hidden hx-swap-oob="@(Model.FueraDeBanda ? "true" : null)"></div>
+}
+else
+{
+<div id="aviso" class="alert alert-success alert-centrada" tabindex="-1" data-autofoco="@(Model.Autofoco ? "true" : "false")" hx-swap-oob="@(Model.FueraDeBanda ? "true" : null)">
+<icono nombre="check" />
+<p class="aviso-texto">@Model.Texto</p>
+<button class="btn btn-ghost btn-icon" type="button" aria-label="Cerrar aviso" data-cerrar-aviso><icono nombre="x" /></button>
+</div>
+}

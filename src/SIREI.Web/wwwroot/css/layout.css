@@ -1,0 +1,34 @@
+/* ===== layout.css · estructura común de _Layout: cabecera, menú lateral y pie ===== */
+.app{min-height:100vh;display:flex;flex-direction:column}
+/* Cabecera */
+.cabecera{background:var(--c-surface);border-bottom:1px solid var(--c-border)}
+.cabecera-barra{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:12px 24px}
+.cabecera-acciones{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
+.marca{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--c-text)}
+.marca:hover{color:var(--c-text)}
+.marca-texto{display:flex;flex-direction:column;line-height:1.2}
+.marca-nombre{font-size:20px;font-weight:700}
+.marca-subtitulo{font-size:14px;color:var(--c-text-muted)}
+.enlace-cau{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-weight:700}
+/* Menú de usuario (sobre .btn .btn-ghost) */
+.usuario{padding:0 8px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--c-primary-soft);color:var(--c-primary);display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+.usuario-datos{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2}
+.usuario-rol{font-size:13px;font-weight:500;color:var(--c-text-muted)}
+/* Cuerpo: menú lateral + contenido de la página */
+.cuerpo{display:flex;flex-wrap:wrap;flex:1}
+.menu-lateral{flex:1 1 220px;padding:20px 16px;background:var(--c-surface);border-right:1px solid var(--c-border)}
+.menu-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+/* Pie */
+.pie{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;padding:16px 24px;background:var(--c-surface);border-top:1px solid var(--c-border);font-size:14px;color:var(--c-text-muted)}
+.pie-enlaces{display:flex;flex-wrap:wrap;gap:8px 20px}
+/* Esqueleto de las páginas: contenedor de <main>, migas, encabezado y columnas */
+.contenido{flex:999 1 560px;min-width:0;padding:32px;display:flex;flex-direction:column;gap:24px}
+.migas{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px;font-size:15px}
+.migas [aria-hidden="true"],.migas [aria-current="page"]{color:var(--c-text-muted)}
+.encabezado{display:flex;flex-direction:column;gap:6px}
+.titulo-pagina{font-size:32px}
+.columnas{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.columna-principal{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:24px}
+.columna-lateral{flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:24px}
+/* ===== fin layout.css ===== */

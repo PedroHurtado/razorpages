@@ -1,0 +1,14 @@
+/* ===== componentes.css · componentes compartidos por varias páginas que no están en sirei.css =====
+   Solo entra aquí lo que usan dos o más páginas. Lo de una sola página va en el CSS de esa página. */
+.texto-secundario{color:var(--c-text-muted)}
+/* Alerta con el icono centrado verticalmente (sobre .alert) */
+.alert-centrada{align-items:center}
+/* _Aviso.cshtml: confirmación tras una acción */
+.aviso-texto{flex:1;font-weight:700}
+/* Tarjeta con un mensaje y acciones: página de error, incidencia registrada */
+.tarjeta-mensaje{max-width:720px;padding:40px;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+.tarjeta-mensaje h1{font-size:28px}
+/* Grupo de botones */
+.botonera{display:flex;flex-wrap:wrap;gap:12px}
+.botonera-final{justify-content:flex-end}
+/* ===== fin componentes.css ===== */

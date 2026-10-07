@@ -1,0 +1,9 @@
+@model SIREI.Web.Pages.Incidencias.ConsultaModel
+@* Respuesta htmx: el mensaje nuevo se añade al final del registro (role="log"), y el resto va fuera de banda *@
+<partial name="_Mensaje" model="(Model.Incidencia.Mensajes[^1], Model.Ahora)" />
+@if (Model.Incidencia.Mensajes.Count == 1)
+{
+<p id="sin-mensajes" hx-swap-oob="delete"></p>
+}
+<span id="actualizada" hx-swap-oob="true">@Model.Actualizada</span>
+<partial name="_Historial" model="Model" />

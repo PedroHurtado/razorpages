@@ -1,0 +1,13 @@
+@model SIREI.Web.Pages.Incidencias.NuevaModel
+@foreach (var p in Model.Personas)
+{
+<li>
+<span>@p.NombreCompleto <span class="mono persona-usuario">(@p.Usuario)</span></span>
+<button class="btn btn-ghost btn-compact" type="button" aria-label="Seleccionar a @p.NombreCompleto como interesado"
+        data-persona="@p.Usuario" data-nombre="@p.NombreCompleto" data-iniciales="@p.Iniciales">Seleccionar</button>
+</li>
+}
+@if (Context.Request.Query.ContainsKey("q"))
+{
+<p id="f-buscar-res" hx-swap-oob="innerHTML">@Presentacion.Plural(Model.Personas.Count, "resultado", "resultados")</p>
+}

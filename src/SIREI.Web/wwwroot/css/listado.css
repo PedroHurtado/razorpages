@@ -1,0 +1,45 @@
+/* ===== listado.css · página de incidencias: Index, _Kpis y _Resultados ===== */
+/* Encabezado */
+.listado-cabecera{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.listado-bandeja{font-size:14px;font-weight:700;color:var(--c-text-muted);text-transform:uppercase;letter-spacing:.06em}
+.listado-refresco{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--c-text-muted)}
+/* Tarjetas de resumen (sobre .kpi) */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.kpi-titulo{font-size:14px;font-weight:700;color:var(--c-text-muted)}
+.kpi-valor{font-size:32px;font-weight:700}
+.kpi-pendientes{color:var(--c-info)}
+.kpi-en-curso{color:var(--c-warning)}
+.kpi-criticas{color:var(--c-danger)}
+.kpi-vip{color:var(--c-vip)}
+.kpi-pie{font-size:14px;color:var(--c-text-muted)}
+/* Filtros */
+.listado-panel{display:flex;flex-direction:column}
+.filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;align-items:end;padding:20px}
+.filtros .btn{justify-self:start}
+/* Buscador: ocupa dos columnas, salvo cuando solo cabe una (evita el desbordamiento en móvil) */
+.filtro-buscar{grid-column:span 2;min-width:0}
+@media (max-width:499.98px){.filtro-buscar{grid-column:auto}}
+.listado-resumen{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:0 20px 12px}
+.listado-total{font-weight:700}
+.listado-nota{font-size:14px;color:var(--c-text-muted)}
+/* Tabla de resultados */
+.resultados-tabla{position:relative;overflow-x:auto;border-top:1px solid var(--c-border)}
+.celda-id{color:var(--c-text-muted)}
+.celda-titulo{min-width:220px}
+.celda-titulo a{font-weight:700}
+.celda-interesado{display:inline-flex;align-items:center;gap:8px}
+.celda-fecha{white-space:nowrap}
+.celda-sin-asignar{color:var(--c-text-muted)}
+.celda-acciones{text-align:right;white-space:nowrap}
+.celda-acciones form{display:inline}
+/* Paginación */
+.paginacion{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;border-top:1px solid var(--c-border)}
+.paginacion-tamano{display:flex;align-items:center;gap:10px}
+.paginacion-tamano label{font-size:15px;font-weight:700}
+.paginacion-tamano select{width:90px}
+.paginacion-paginas{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+/* Sin resultados */
+.sin-resultados{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 20px;border-top:1px solid var(--c-border);text-align:center}
+.sin-resultados h2{font-size:20px}
+.sin-resultados-icono{width:40px;height:40px;color:var(--c-text-muted)}
+/* ===== fin listado.css ===== */

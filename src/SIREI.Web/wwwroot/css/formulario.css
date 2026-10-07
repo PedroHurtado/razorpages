@@ -1,0 +1,55 @@
+/* ===== componentes de formulario ===== */
+.editor{border:1.5px solid var(--c-border-strong);border-radius:var(--r-sm);background:var(--c-surface);overflow:hidden}
+.editor:focus-within{outline:3px solid var(--c-focus);outline-offset:2px}
+.editor-bar{display:flex;flex-wrap:wrap;gap:2px;padding:4px;border-bottom:1px solid var(--c-border);background:var(--c-surface-alt)}
+.editor textarea{display:block;width:100%;min-height:200px;border:0;padding:12px;font:inherit;color:var(--c-text);background:transparent;resize:vertical}
+.editor textarea:focus-visible{outline:none}
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:28px 20px;border:2px dashed var(--c-border-strong);border-radius:var(--r-md);background:var(--c-surface-alt);text-align:center;cursor:pointer}
+.drop:hover{border-color:var(--c-primary);background:var(--c-primary-soft)}
+.drop:focus-within{outline:3px solid var(--c-focus);outline-offset:2px}
+.section-title{display:flex;align-items:center;gap:10px;font-size:18px}
+.step{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--c-primary-soft);color:var(--c-primary);font-size:14px;font-weight:700}
+.editor:has(textarea[aria-invalid="true"]){border-color:var(--c-danger)}
+/* ===== página Nueva incidencia y _ListaPersonas ===== */
+/* Incidencia registrada (sobre .tarjeta-mensaje) */
+.registrada-icono{width:56px;height:56px;border-radius:50%;background:var(--c-success-soft);color:var(--c-success);display:inline-flex;align-items:center;justify-content:center}
+.registrada-icono .i{width:28px;height:28px}
+/* Resumen de errores */
+.resumen-errores{max-width:920px}
+.resumen-errores-cuerpo{display:flex;flex-direction:column;gap:6px}
+.resumen-errores h2{font-size:17px}
+.resumen-errores ul{margin:0;padding-left:20px}
+.resumen-errores a{color:var(--c-danger);font-weight:700}
+/* Secciones del formulario */
+.seccion-formulario{padding:24px;display:flex;flex-direction:column;gap:20px}
+.seccion-adjuntos{gap:16px}
+.section-title-nota{font-size:15px;font-weight:500;color:var(--c-text-muted)}
+.rejilla-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+.descripcion-pie{display:flex;justify-content:space-between;gap:12px}
+.descripcion-pie .hint{margin-left:auto}
+/* Personas */
+.persona{display:flex;align-items:center;gap:10px;min-height:44px}
+.persona-con-accion{flex-wrap:wrap}
+.persona-avatar{width:32px;height:32px;border-radius:50%;background:var(--c-neutral-soft);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.persona-avatar-interesado{background:var(--c-primary-soft);color:var(--c-primary)}
+.persona-nombre{flex:1}
+.persona-usuario{font-size:14px;color:var(--c-text-muted)}
+.panel-interesado{padding:16px;border-radius:var(--r-md);background:var(--c-surface-alt);border:1px solid var(--c-border);display:flex;flex-direction:column;gap:12px}
+.lista-personas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.lista-personas li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 8px;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-sm)}
+/* Adjuntos (sobre .drop) */
+.drop-icono{width:32px;height:32px;color:var(--c-primary)}
+.drop-texto{font-weight:700}
+.drop-enlace{color:var(--c-primary);text-decoration:underline}
+.drop .hint{margin:0}
+.lista-ficheros{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.fichero{display:flex;align-items:center;gap:10px;padding:4px 4px 4px 12px;border:1px solid var(--c-border);border-radius:var(--r-sm)}
+.fichero-icono{color:var(--c-text-muted)}
+.fichero-nombre{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fichero-tam{font-size:14px;color:var(--c-text-muted)}
+/* Acciones y ayuda lateral */
+.formulario-acciones{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-top:8px}
+.ayuda{flex:1 1 260px;min-width:0}
+.ayuda-tarjeta{padding:20px;display:flex;flex-direction:column;gap:12px;background:var(--c-info-soft);border-color:#B9CBE6}
+.ayuda-titulo{display:flex;align-items:center;gap:8px;font-size:17px;color:var(--c-info)}
+.ayuda-lista{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;color:var(--c-text)}

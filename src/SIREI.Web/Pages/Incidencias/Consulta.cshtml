@@ -1,0 +1,199 @@
+@page "/Incidencias/{id:int}"
+@model ConsultaModel
+@{
+    var i = Model.Incidencia;
+    ViewData["Title"] = $"Incidencia {i.Id}";
+    ViewData["Seccion"] = "incidencias";
+    var interesado = i.Interesado;
+    var asignado = i.AsignadoA is null ? "Sin asignar" : i.AsignadaAMi ? $"{i.AsignadoA} (usted)" : i.AsignadoA;
+    var usuario = Model.Pestana == "usuario";
+    var urlMensaje = Url.Page("/Incidencias/Consulta", "Mensaje", new { id = i.Id });
+    var urlNotas = Url.Page("/Incidencias/Consulta", "Notas", new { id = i.Id });
+    var urlBorrador = Url.Page("/Incidencias/Consulta", "Borrador", new { id = i.Id });
+    var urlFinalizar = Url.Page("/Incidencias/Consulta", "Finalizar", new { id = i.Id });
+    var describedbySol = Model.ErrorSolucion ? "f-sol-hint f-sol-err" : "f-sol-hint";
+}
+@section Estilos {
+<link rel="stylesheet" href="~/css/consulta.css" asp-append-version="true">
+}
+<main id="main" class="contenido consulta"
+      data-cambios="@(Model.Sucio ? "true" : "false")">
+
+<nav aria-label="Ruta de navegación">
+<ol class="migas">
+<li><a href="/">Incidencias</a></li>
+<li aria-hidden="true">/</li>
+<li aria-current="page">Incidencia @i.Id</li>
+</ol>
+</nav>
+
+<div class="encabezado consulta-encabezado">
+<p class="mono consulta-id">#@i.Id</p>
+<h1 class="titulo-pagina">@i.Titulo</h1>
+<div class="consulta-etiquetas">
+<sirei-badge estado="i.Estado" />
+<span class="badge @Presentacion.ClasePrioridad(i.Prioridad)">Prioridad @i.Prioridad.Texto().ToLowerInvariant()</span>
+<span class="badge badge-plain b-neutral">@i.Categoria</span>
+<span class="consulta-fechas">Enviada @Presentacion.FechaFrase(i.FechaEntrada) · Actualizada <span id="actualizada">@Model.Actualizada</span></span>
+</div>
+</div>
+
+<partial name="_Aviso" model="new Aviso(Model.AvisoTexto, Autofoco: true)" />
+
+<div class="columnas">
+<div class="columna-principal">
+
+<section class="card bloque-descripcion" aria-labelledby="h-desc">
+<h2 id="h-desc">Descripción del usuario</h2>
+<p class="texto-con-saltos">@i.Descripcion</p>
+@if (i.Adjuntos.Count == 0)
+{
+<p class="sin-adjuntos"><icono nombre="paperclip" class="i i-sm" />Sin ficheros adjuntos</p>
+}
+else
+{
+<ul class="adjuntos" aria-label="Ficheros adjuntos">
+@foreach (var a in i.Adjuntos)
+{
+<li><icono nombre="paperclip" class="i i-sm" /><span>@a.Nombre</span><span class="mono">@Presentacion.Tamano(a.Tamano)</span></li>
+}
+</ul>
+}
+</section>
+
+<section class="card" aria-label="Gestión de la incidencia">
+<div class="tabs" role="tablist" aria-label="Áreas de trabajo">
+<button class="tab" id="t-usuario" type="button" role="tab" aria-selected="@(usuario ? "true" : "false")" tabindex="@(usuario ? "0" : "-1")" aria-controls="p-usuario"><icono nombre="eye" />Comunicación con el usuario</button>
+<button class="tab" id="t-interno" type="button" role="tab" aria-selected="@(usuario ? "false" : "true")" tabindex="@(usuario ? "-1" : "0")" aria-controls="p-interno"><icono nombre="lock" />Trabajo interno CAU<span id="tab-error" class="badge badge-plain b-danger" hidden="@(!Model.ErrorSolucion)">1 error</span></button>
+</div>
+
+<div id="p-usuario" class="panel-pestana" role="tabpanel" aria-labelledby="t-usuario" hidden="@(!usuario)">
+<p class="alert alert-info alert-centrada"><icono nombre="eye" />Todo lo que escribas en esta pestaña lo verá @interesado.NombreCorto.</p>
+
+<div class="mensajes">
+<h3>Mensajes</h3>
+<div id="log" class="registro-mensajes" role="log" aria-live="polite" aria-label="Mensajes con el usuario" tabindex="0">
+@if (i.Mensajes.Count == 0)
+{
+<p id="sin-mensajes" class="sin-mensajes"><icono nombre="message-square" />Todavía no hay mensajes. El usuario recibe un aviso con cada mensaje que envíes.</p>
+}
+@foreach (var m in i.Mensajes)
+{
+<partial name="_Mensaje" model="(m, Model.Ahora)" />
+}
+</div>
+<form id="form-msg" class="form-mensaje" method="post" action="@urlMensaje" asp-antiforgery="true" hx-post="@urlMensaje" hx-target="#log" hx-swap="beforeend" data-finalizada="@(Model.Finalizada ? "true" : "false")">
+<label class="label" for="f-msg">Nuevo mensaje</label>
+<textarea class="input" id="f-msg" name="texto" placeholder="Escribe un mensaje para el usuario"></textarea>
+<div class="botonera botonera-final">
+<button id="btn-descartar" class="btn btn-ghost" type="button" hidden>Descartar</button>
+<button id="btn-enviar" class="btn btn-primary" type="submit" disabled><icono nombre="send" />Enviar mensaje</button>
+</div>
+</form>
+</div>
+
+<div>
+<label class="label" for="f-cierre">Comentario de cierre</label>
+<textarea class="input" id="f-cierre" name="cierre" form="f-gestion" maxlength="4000" placeholder="Explica al usuario cómo se ha resuelto" aria-describedby="f-cierre-hint"
+          data-sucio data-contador="f-cierre-hint" data-plantilla="Se enviará al usuario al finalizar la incidencia. Quedan {n} caracteres.">@i.ComentarioCierre</textarea>
+<p class="hint" id="f-cierre-hint">Se enviará al usuario al finalizar la incidencia. Quedan @(4000 - i.ComentarioCierre.Length) caracteres.</p>
+</div>
+</div>
+
+<div id="p-interno" class="panel-pestana" role="tabpanel" aria-labelledby="t-interno" hidden="@usuario">
+<p class="alert alert-warning alert-centrada"><icono nombre="lock" />Solo visible para el CAU. El usuario no verá nada de esta pestaña.</p>
+<div>
+<label class="label" for="f-notas">Notas internas</label>
+<textarea class="input" id="f-notas" name="notas" form="f-gestion" maxlength="4000" placeholder="Pasos realizados, pruebas, contactos…" aria-describedby="f-notas-hint" data-sucio>@i.NotasInternas</textarea>
+<div class="notas-pie">
+<p class="hint" id="f-notas-hint" aria-live="polite">@Model.EstadoNotas</p>
+<button class="btn btn-secondary btn-compact" type="button" hx-post="@urlNotas" hx-include="#f-notas" hx-target="#f-notas-hint"><icono nombre="save" class="i i-sm" />Guardar notas</button>
+</div>
+</div>
+<div>
+<label class="label" for="f-sol">Solución técnica <span class="req" aria-hidden="true">*</span><span class="sr-only">(obligatoria para finalizar)</span></label>
+<textarea class="input" id="f-sol" name="sol" form="f-gestion" maxlength="4000" placeholder="Causa y solución aplicada, para futuras consultas del CAU"
+          aria-invalid="@(Model.ErrorSolucion ? "true" : "false")" aria-describedby="@describedbySol"
+          data-sucio data-contador="f-sol-hint" data-plantilla="Obligatoria para finalizar. Quedan {n} caracteres.">@i.Solucion</textarea>
+<p class="error-text" id="f-sol-err" hidden="@(!Model.ErrorSolucion)"><icono nombre="alert-circle" class="i i-sm" />Describe la solución antes de finalizar</p>
+<p class="hint" id="f-sol-hint">Obligatoria para finalizar. Quedan @(4000 - i.Solucion.Length) caracteres.</p>
+</div>
+<div>
+<p class="label">Ficheros de la solución <span class="label-nota">(opcional · máx. 3 ficheros, 20 MB)</span></p>
+<label for="f-solfiles" class="btn btn-secondary adjuntar-solucion"><icono nombre="paperclip" />Adjuntar ficheros<input class="sr-only" id="f-solfiles" name="ficherosSolucion" form="f-gestion" type="file" multiple aria-describedby="f-solfiles-hint" data-sucio data-max-ficheros="@ConsultaModel.MaxFicherosSolucion"></label>
+<p class="hint" id="f-solfiles-hint" aria-live="polite">@(i.AdjuntosSolucion.Count > 0 ? "Adjuntos: " + string.Join(", ", i.AdjuntosSolucion.Select(a => a.Nombre)) : "Ningún fichero adjunto")</p>
+</div>
+</div>
+</section>
+</div>
+
+<aside class="columna-lateral" aria-label="Información de la incidencia">
+<section class="card ficha" aria-labelledby="h-personas">
+<h2 id="h-personas">Personas</h2>
+<dl class="dl">
+<div>
+<dt>Interesado</dt>
+<dd class="dd-con-accion"><span>@interesado.NombreCompleto</span><a class="btn btn-ghost btn-compact" href="#main"><icono nombre="phone" class="i i-sm" /><span>Llamar<span class="sr-only"> a @interesado.NombreCorto</span> · ext. @interesado.Extension</span></a></dd>
+</div>
+<div>
+<dt>Solicitante</dt>
+<dd>@i.Solicitante</dd>
+</div>
+<div>
+<dt>Asignada a</dt>
+<dd class="dd-con-accion"><span>@asignado</span><button class="btn btn-ghost btn-compact" type="button" disabled="@Model.Finalizada">Reasignar</button></dd>
+</div>
+</dl>
+</section>
+
+<section class="card ficha" aria-labelledby="h-hist">
+<h2 id="h-hist">Historial</h2>
+<partial name="_Historial" model="Model" />
+</section>
+</aside>
+</div>
+
+<div class="barra-acciones">
+<a id="btn-volver" class="btn btn-ghost" href="/"><icono nombre="arrow-left" />Volver al listado</a>
+<span class="barra-acciones-hueco"></span>
+<span id="badge-sucio" class="badge b-warning" role="status" hidden="@(!Model.Sucio)">Cambios sin guardar</span>
+@if (!Model.Finalizada)
+{
+<button id="btn-borrador" class="btn btn-secondary" type="button" disabled="@(!Model.Sucio)"
+        hx-post="@urlBorrador" hx-include="#f-cierre, #f-notas, #f-sol" hx-target="#historial" hx-swap="outerHTML" data-foco="#aviso"><icono nombre="save" />Guardar borrador</button>
+<button id="btn-finalizar" class="btn btn-primary" type="button"><icono nombre="check" />Finalizar incidencia</button>
+}
+</div>
+<form id="f-gestion" method="post" action="@urlFinalizar" asp-antiforgery="true" enctype="multipart/form-data" hidden></form>
+</main>
+
+@section Dialogos {
+<dialog id="dlg-finalizar" class="dialog" aria-labelledby="dlg-fin-t" aria-describedby="dlg-fin-d">
+<h2 id="dlg-fin-t">¿Finalizar la incidencia @i.Id?</h2>
+<div id="dlg-fin-d" class="dialogo-cuerpo">
+<p>Se cerrará la incidencia y se avisará a @interesado.NombreCorto por correo.</p>
+<div class="cierre-resumen">
+<p class="cierre-resumen-titulo">Comentario de cierre que verá el usuario</p>
+<p id="cierre-preview" class="texto-con-saltos" data-vacio="Sin comentario: el usuario solo recibirá el aviso de cierre."></p>
+</div>
+</div>
+<div class="botonera botonera-final">
+<button class="btn btn-ghost" type="button" data-cerrar-dialogo>Seguir editando</button>
+<button id="btn-confirmar-finalizar" class="btn btn-primary" type="submit" form="f-gestion">Sí, finalizar</button>
+</div>
+</dialog>
+
+<dialog id="dlg-salir" class="dialog" aria-labelledby="dlg-sal-t" aria-describedby="dlg-sal-d">
+<h2 id="dlg-sal-t">Tienes cambios sin guardar</h2>
+<p id="dlg-sal-d">Si sales ahora, se perderán los cambios en el comentario de cierre, las notas o la solución.</p>
+<div class="botonera botonera-final">
+<button class="btn btn-ghost" type="button" data-cerrar-dialogo>Seguir editando</button>
+<button id="btn-guardar-salir" class="btn btn-secondary" type="button"
+        hx-post="@urlBorrador" hx-include="#f-cierre, #f-notas, #f-sol" hx-vals='{"salir": true}' hx-target="#historial" hx-swap="outerHTML" data-foco="#aviso">Guardar borrador</button>
+<a id="btn-salir" class="btn btn-danger" href="/">Salir sin guardar</a>
+</div>
+</dialog>
+}
+@section Scripts {
+<script src="~/js/consulta.js" asp-append-version="true"></script>
+}

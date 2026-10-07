@@ -1,0 +1,12 @@
+@page
+@model ErrorModel
+@{
+    ViewData["Title"] = Model.Titulo;
+}
+<main id="main" class="contenido">
+<div class="card tarjeta-mensaje">
+<h1>@Model.Titulo</h1>
+<p class="texto-secundario">@Model.Detalle</p>
+<a class="btn btn-primary" href="/">Volver al listado</a>
+</div>
+</main>

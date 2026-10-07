@@ -1,0 +1,3 @@
+/* Añadidos de la implementación Razor que no alteran el aspecto de los wireframes */
+[hidden]{display:none !important}
+[aria-busy="true"]{cursor:progress}

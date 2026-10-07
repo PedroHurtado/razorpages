@@ -1,0 +1,72 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Incidencias";
+    ViewData["Seccion"] = "incidencias";
+    var f = Model.Filtro;
+    var urlResultados = Url.Page("/Index", "Resultados");
+}
+@section Estilos {
+<link rel="stylesheet" href="~/css/listado.css" asp-append-version="true">
+}
+<main id="main" class="contenido">
+
+<div class="listado-cabecera">
+<div class="encabezado">
+<p class="listado-bandeja">Bandeja CAU N2</p>
+<h1 class="titulo-pagina">Incidencias</h1>
+<p class="listado-refresco"><icono nombre="refresh-cw" class="i i-sm" />Se actualiza automáticamente cada 30 s · última: hace unos segundos</p>
+</div>
+<a class="btn btn-primary" href="/Incidencias/Nueva"><icono nombre="plus" />Nueva incidencia</a>
+</div>
+
+<partial name="_Kpis" model="Model" />
+
+<partial name="_Aviso" model="new Aviso(Model.AvisoTexto, Autofoco: true)" />
+
+<div class="card listado-panel">
+<form id="filtros" class="filtros" role="search" aria-label="Filtrar incidencias" method="get" action="/"
+      hx-get="@urlResultados" hx-target="#resultados" hx-trigger="submit, change, input delay:300ms from:#f-texto">
+<div class="filtro-buscar">
+<label class="label" for="f-texto">Buscar</label>
+<input class="input" id="f-texto" name="texto" type="search" placeholder="Id, título o usuario" value="@f.Texto" autocomplete="off">
+</div>
+<div>
+<label class="label" for="f-estado">Estado</label>
+<select class="input" id="f-estado" name="estado">
+<option value="Abiertas" selected="@(f.Estado == FiltroEstado.Abiertas)">Pendientes y en curso</option>
+<option value="Pendiente" selected="@(f.Estado == FiltroEstado.Pendiente)">Pendientes</option>
+<option value="EnCurso" selected="@(f.Estado == FiltroEstado.EnCurso)">En curso</option>
+<option value="Finalizada" selected="@(f.Estado == FiltroEstado.Finalizada)">Finalizadas</option>
+<option value="Todas" selected="@(f.Estado == FiltroEstado.Todas)">Todas</option>
+</select>
+</div>
+<div>
+<label class="label" for="f-prio">Prioridad</label>
+<select class="input" id="f-prio" name="prioridad">
+<option value="" selected="@(f.Prioridad is null)">Todas</option>
+<option value="Critica" selected="@(f.Prioridad == Prioridad.Critica)">Crítica</option>
+<option value="Alta" selected="@(f.Prioridad == Prioridad.Alta)">Alta</option>
+<option value="Normal" selected="@(f.Prioridad == Prioridad.Normal)">Normal</option>
+<option value="Baja" selected="@(f.Prioridad == Prioridad.Baja)">Baja</option>
+</select>
+</div>
+<label class="check" for="f-vip"><input id="f-vip" name="vip" type="checkbox" value="true" checked="@f.Vip">Solo usuarios VIP</label>
+<button class="btn btn-ghost" type="button" data-preset="{}"><icono nombre="rotate-ccw" />Restablecer filtros</button>
+<noscript><button class="btn btn-primary" type="submit">Aplicar filtros</button></noscript>
+</form>
+
+<div class="listado-resumen">
+<p id="resumen" class="listado-total" aria-live="polite" tabindex="-1">@Model.TextoResumen</p>
+<p class="listado-nota">Los filtros se aplican al instante</p>
+</div>
+
+<div id="resultados">
+<partial name="_Resultados" model="Model" />
+</div>
+</div>
+
+@* Refresco cada 30 s, salvo si el foco está en la tabla o en las tarjetas: la condición está en sirei.js (htmx:confirm) *@
+<div hidden data-refresco-auto hx-get="@urlResultados" hx-vals='{"auto": true}' hx-include="#filtros, #pagina-actual" hx-target="#resultados"
+     hx-trigger="every 30s"></div>
+</main>

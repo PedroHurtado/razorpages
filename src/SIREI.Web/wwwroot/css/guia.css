@@ -1,0 +1,13 @@
+/* ===== solo para la guía ===== */
+.g-section{display:flex;flex-direction:column;gap:20px}
+.g-h2{display:flex;align-items:baseline;gap:12px;font-size:24px;padding-bottom:10px;border-bottom:2px solid var(--c-text)}
+.g-num{font-family:var(--font-mono);font-size:16px;color:var(--c-text-muted)}
+.g-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.sw{display:flex;flex-direction:column;overflow:hidden}
+.sw-chip{height:72px;display:flex;align-items:flex-end;padding:10px 12px;font-weight:700;font-size:15px}
+.sw-body{padding:12px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.tok{font-family:var(--font-mono);font-size:13px;color:var(--c-text-muted)}
+.spec{font-family:var(--font-mono);font-size:13px;padding:2px 6px;border-radius:4px;background:var(--c-neutral-soft)}
+.demo-focus{outline:3px solid var(--c-focus);outline-offset:2px}
+/* La guía no resalta filas al pasar el ratón */
+.table tbody tr:hover{background:transparent}

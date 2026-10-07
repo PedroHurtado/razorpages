@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SIREI.Dominio/SIREI.Dominio.csproj" />
+  <Project Path="SIREI.Servicios.Fake/SIREI.Servicios.Fake.csproj" />
+  <Project Path="SIREI.Web/SIREI.Web.csproj" />
+</Solution>

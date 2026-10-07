@@ -1,0 +1,7 @@
+@model SIREI.Web.Pages.Incidencias.ConsultaModel
+<ol id="historial" class="timeline" hx-swap-oob="@(Model.HistorialFueraDeBanda ? "true" : null)">
+@foreach (var h in Model.Incidencia.Historial)
+{
+<li><span class="dot" aria-hidden="true"></span><div><p class="historial-texto">@h.Texto</p><p class="historial-fecha">@Presentacion.CuandoHistorial(h.Fecha, Model.Ahora)</p></div></li>
+}
+</ol>

@@ -1,0 +1,10 @@
+@model IndexModel
+@{
+    var k = Model.Resumen;
+}
+<section id="kpis" class="kpis" aria-label="Resumen" hx-swap-oob="@(Model.EsFragmento ? "true" : null)">
+<button class="kpi" type="button" data-preset='{"estado":"Pendiente"}'><span class="kpi-titulo">Pendientes sin asignar</span><span class="kpi-valor kpi-pendientes">@k.Pendientes</span><span class="kpi-pie">Ver pendientes</span></button>
+<button class="kpi" type="button" data-preset='{"estado":"EnCurso"}'><span class="kpi-titulo">En curso</span><span class="kpi-valor kpi-en-curso">@k.EnCurso</span><span class="kpi-pie">Ver en curso</span></button>
+<button class="kpi" type="button" data-preset='{"prioridad":"Critica"}'><span class="kpi-titulo">Prioridad crítica</span><span class="kpi-valor kpi-criticas">@k.Criticas</span><span class="kpi-pie">Ver críticas</span></button>
+<button class="kpi" type="button" data-preset='{"vip":true}'><span class="kpi-titulo">De usuarios VIP</span><span class="kpi-valor kpi-vip">@k.Vip</span><span class="kpi-pie">Ver VIP</span></button>
+</section>

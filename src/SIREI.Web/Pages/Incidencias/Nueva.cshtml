@@ -1,0 +1,197 @@
+@page
+@model NuevaModel
+@{
+    var registrada = Model.Registrada;
+    ViewData["Title"] = registrada is null ? "Nueva incidencia" : $"Incidencia {registrada.Id} registrada";
+    ViewData["Seccion"] = "nueva";
+    var errTitulo = Model.TieneError(nameof(NuevaModel.EntradaNueva.Titulo));
+    var errDesc = Model.TieneError(nameof(NuevaModel.EntradaNueva.Descripcion));
+    var errCat = Model.TieneError(nameof(NuevaModel.EntradaNueva.Categoria));
+    var numErrores = new[] { errTitulo, errDesc, errCat }.Count(e => e);
+    var desc = Model.Input.Descripcion ?? "";
+    var interesado = Model.Interesado;
+}
+@section Estilos {
+<link rel="stylesheet" href="~/css/formulario.css" asp-append-version="true">
+}
+<main id="main" class="contenido">
+
+<nav aria-label="Ruta de navegación">
+<ol class="migas">
+<li><a href="/">Incidencias</a></li>
+<li aria-hidden="true">/</li>
+<li aria-current="page">Nueva incidencia</li>
+</ol>
+</nav>
+
+@if (registrada is not null)
+{
+<div class="card tarjeta-mensaje" role="status" tabindex="-1" data-autofoco="true">
+<span class="registrada-icono"><icono nombre="check" /></span>
+<h1>Incidencia <span class="mono">#@registrada.Id</span> registrada</h1>
+<p class="texto-secundario">«@registrada.Titulo» se ha enviado al CAU con prioridad @registrada.Prioridad.Texto(). @registrada.Interesado.NombreCompleto recibirá un aviso por correo cuando cambie de estado.</p>
+<div class="botonera">
+<a class="btn btn-primary" href="@Url.Page("/Incidencias/Consulta", new { id = registrada.Id })">Ver la incidencia</a>
+<a class="btn btn-secondary" href="/Incidencias/Nueva">Registrar otra</a>
+<a class="btn btn-ghost" href="/">Volver al listado</a>
+</div>
+</div>
+}
+else
+{
+<div class="encabezado">
+<h1 class="titulo-pagina">Nueva incidencia</h1>
+<p class="texto-secundario">Los campos marcados con <span class="req" aria-hidden="true">*</span> son obligatorios.</p>
+</div>
+
+<div id="resumen-errores" class="alert alert-error resumen-errores" role="alert" tabindex="-1" hidden="@(numErrores == 0)" data-autofoco="@(numErrores > 0 ? "true" : "false")">
+<icono nombre="alert-circle" />
+<div class="resumen-errores-cuerpo">
+<h2>Revisa <span id="num-errores">@Presentacion.Plural(numErrores, "campo", "campos")</span> antes de continuar</h2>
+<ul>
+<li data-error-de="f-titulo" hidden="@(!errTitulo)"><a href="#f-titulo">@NuevaModel.ErrorTitulo</a></li>
+<li data-error-de="f-desc" hidden="@(!errDesc)"><a href="#f-desc">@NuevaModel.ErrorDescripcion</a></li>
+<li data-error-de="f-cat" hidden="@(!errCat)"><a href="#f-cat">@NuevaModel.ErrorCategoria</a></li>
+</ul>
+</div>
+</div>
+
+<form id="form-nueva" class="columnas" method="post" enctype="multipart/form-data" novalidate data-intentado="@(Model.Intentado ? "true" : "false")">
+<div class="columna-principal">
+
+<section class="card seccion-formulario" aria-labelledby="s1">
+<h2 id="s1" class="section-title"><span class="step" aria-hidden="true">1</span>¿Qué ocurre?</h2>
+<div>
+<label class="label" for="f-titulo">Título <span class="req" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span></label>
+<input class="input" id="f-titulo" name="Input.Titulo" type="text" maxlength="120" placeholder="Ej.: No puedo acceder a la aplicación de nóminas" value="@Model.Input.Titulo"
+       aria-invalid="@(errTitulo ? "true" : "false")" aria-describedby="@(errTitulo ? "f-titulo-hint f-titulo-err" : "f-titulo-hint")"
+       data-obligatorio="f-titulo-err" data-describedby="f-titulo-hint">
+<p class="hint" id="f-titulo-hint">Un resumen breve en una frase.</p>
+<p class="error-text" id="f-titulo-err" hidden="@(!errTitulo)"><icono nombre="alert-circle" class="i i-sm" />@NuevaModel.ErrorTitulo</p>
+</div>
+<div>
+<label class="label" id="f-desc-label" for="f-desc">Descripción <span class="req" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span></label>
+<div class="editor">
+<div class="editor-bar" role="toolbar" aria-label="Formato del texto">
+<button class="btn btn-ghost btn-icon" type="button" aria-label="Negrita"><icono nombre="bold" /></button>
+<button class="btn btn-ghost btn-icon" type="button" aria-label="Cursiva"><icono nombre="italic" /></button>
+<button class="btn btn-ghost btn-icon" type="button" aria-label="Lista con viñetas"><icono nombre="list" /></button>
+<button class="btn btn-ghost btn-icon" type="button" aria-label="Insertar enlace"><icono nombre="link" /></button>
+</div>
+<textarea id="f-desc" name="Input.Descripcion" maxlength="4000" placeholder="¿Qué estabas haciendo? ¿Qué mensaje aparece? ¿Desde cuándo ocurre?"
+          aria-invalid="@(errDesc ? "true" : "false")" aria-describedby="@(errDesc ? "f-desc-count f-desc-err" : "f-desc-count")"
+          data-obligatorio="f-desc-err" data-describedby="f-desc-count"
+          data-contador="f-desc-count" data-plantilla="Quedan {n} de 4000 caracteres">@desc</textarea>
+</div>
+<div class="descripcion-pie">
+<p class="error-text" id="f-desc-err" hidden="@(!errDesc)"><icono nombre="alert-circle" class="i i-sm" />@NuevaModel.ErrorDescripcion</p>
+<p class="hint" id="f-desc-count">Quedan @(4000 - desc.Length) de 4000 caracteres</p>
+</div>
+</div>
+</section>
+
+<section class="card seccion-formulario" aria-labelledby="s2">
+<h2 id="s2" class="section-title"><span class="step" aria-hidden="true">2</span>Clasificación</h2>
+<div class="rejilla-campos">
+<div>
+<label class="label" for="f-cat">Categoría <span class="req" aria-hidden="true">*</span><span class="sr-only">(obligatorio)</span></label>
+<select class="input" id="f-cat" name="Input.Categoria"
+        aria-invalid="@(errCat ? "true" : "false")" aria-describedby="@(errCat ? "f-cat-err" : null)"
+        data-obligatorio="f-cat-err" data-describedby="">
+<option value="">Selecciona una categoría</option>
+@foreach (var categoria in Model.Categorias)
+{
+<option value="@categoria" selected="@(categoria == Model.Input.Categoria)">@categoria</option>
+}
+</select>
+<p class="error-text" id="f-cat-err" hidden="@(!errCat)"><icono nombre="alert-circle" class="i i-sm" />@NuevaModel.ErrorCategoria</p>
+</div>
+<div>
+<label class="label" for="f-prio">Prioridad</label>
+<select class="input" id="f-prio" name="Input.Prioridad" aria-describedby="f-prio-hint">
+@foreach (var prioridad in new[] { Prioridad.Baja, Prioridad.Normal, Prioridad.Alta, Prioridad.Critica })
+{
+<option value="@prioridad" selected="@(prioridad == Model.Input.Prioridad)">@prioridad.Texto()</option>
+}
+</select>
+<p class="hint" id="f-prio-hint">El CAU puede ajustarla tras revisar la incidencia.</p>
+</div>
+</div>
+</section>
+
+<section class="card seccion-formulario" aria-labelledby="s3">
+<h2 id="s3" class="section-title"><span class="step" aria-hidden="true">3</span>Personas</h2>
+<div class="rejilla-campos">
+<div>
+<p class="label">Solicitante</p>
+<p class="persona"><span class="persona-avatar" aria-hidden="true">@Model.Usuario.Iniciales</span>@Model.Usuario.NombreCompleto</p>
+<p class="hint">Eres tú: la incidencia queda registrada a tu nombre.</p>
+</div>
+<div>
+<p class="label" id="l-interesado">Interesado</p>
+<div class="persona persona-con-accion">
+<span id="interesado-ini" class="persona-avatar persona-avatar-interesado" aria-hidden="true">@interesado.Iniciales</span>
+<span class="persona-nombre"><span id="interesado-nombre">@interesado.NombreCompleto</span> <span class="mono persona-usuario">(<span id="interesado-usuario">@interesado.Usuario</span>)</span></span>
+<button id="btn-cambiar" class="btn btn-secondary btn-compact" type="button" aria-expanded="false" aria-controls="panel-interesado"><icono nombre="search" class="i i-sm" />Cambiar<span class="sr-only"> interesado</span></button>
+</div>
+<input type="hidden" id="f-interesado" name="Input.Interesado" value="@interesado.Usuario">
+<p class="hint">Persona afectada, si no eres tú.</p>
+</div>
+</div>
+<div id="panel-interesado" class="panel-interesado" hidden>
+<div>
+<label class="label" for="f-buscar">Buscar persona</label>
+<input class="input" id="f-buscar" name="q" type="search" placeholder="Nombre, apellidos o usuario" aria-describedby="f-buscar-res" autocomplete="off"
+       hx-get="@Url.Page("/Incidencias/Nueva", "Personas")" hx-trigger="input delay:250ms, search" hx-target="#lista-personas">
+<p class="hint" id="f-buscar-res" aria-live="polite">@Presentacion.Plural(Model.Personas.Count, "resultado", "resultados")</p>
+</div>
+<ul id="lista-personas" class="lista-personas">
+<partial name="_ListaPersonas" model="Model" />
+</ul>
+</div>
+</section>
+
+<section class="card seccion-formulario seccion-adjuntos" aria-labelledby="s4">
+<h2 id="s4" class="section-title"><span class="step" aria-hidden="true">4</span>Adjuntos <span class="section-title-nota">(opcional)</span></h2>
+<label class="drop" for="f-files">
+<icono nombre="upload" class="i drop-icono" />
+<span class="drop-texto">Arrastra los ficheros aquí o <span class="drop-enlace">selecciónalos</span></span>
+<span class="hint">Máximo 3 ficheros y 20 MB en total</span>
+<input class="sr-only" id="f-files" name="Adjuntos" type="file" multiple data-max-ficheros="@NuevaModel.MaxFicheros" data-max-bytes="@NuevaModel.MaxBytes">
+</label>
+<p class="error-text" id="f-files-err" role="alert" hidden="@(Model.ErrorFicheros is null)"><icono nombre="alert-circle" class="i i-sm" /><span>@Model.ErrorFicheros</span></p>
+<ul id="lista-ficheros" class="lista-ficheros" aria-label="Ficheros adjuntos" hidden></ul>
+<p id="uso-ficheros" class="hint" hidden></p>
+<template id="tpl-fichero">
+<li class="fichero">
+<icono nombre="paperclip" class="i fichero-icono" />
+<span class="fichero-nombre" data-nombre></span>
+<span class="mono fichero-tam" data-tam></span>
+<button class="btn btn-ghost btn-icon" type="button" data-quitar><icono nombre="x" /></button>
+</li>
+</template>
+</section>
+
+<div class="formulario-acciones">
+<a class="btn btn-ghost" href="/"><icono nombre="arrow-left" />Cancelar y volver</a>
+<button class="btn btn-primary" type="submit"><icono nombre="send" />Registrar incidencia</button>
+</div>
+</div>
+
+<aside class="ayuda" aria-labelledby="ayuda">
+<div class="card ayuda-tarjeta">
+<h2 id="ayuda" class="ayuda-titulo"><icono nombre="info" />Para resolverla antes</h2>
+<ul class="ayuda-lista">
+<li>Indica el mensaje de error exacto o adjunta una captura.</li>
+<li>Di desde cuándo ocurre y si afecta a más personas.</li>
+<li>Si es urgente y bloquea tu trabajo, llama al CAU: <a href="tel:90560">ext. 90560</a>.</li>
+</ul>
+</div>
+</aside>
+</form>
+}
+
+</main>
+@section Scripts {
+<script src="~/js/nueva.js" asp-append-version="true"></script>
+}

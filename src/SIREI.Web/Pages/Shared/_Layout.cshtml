@@ -1,0 +1,71 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject IUsuarioActualServicio UsuarioActual
+@{
+    var usuario = UsuarioActual.Usuario;
+    var seccion = ViewData["Seccion"] as string;
+}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@ViewData["Title"] · SIREI</title>
+<meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken">
+<meta name="htmx-config" content='{"includeIndicatorStyles":false,"allowEval":false,"allowScriptTags":false,"defaultFocusScroll":false}'>
+<link rel="icon" href="~/favicon.svg" type="image/svg+xml">
+@* Sin asp-append-version: la URL debe ser idéntica a la de fuentes.css o se descargaría dos veces *@
+<link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="~/css/fuentes.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/sirei.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/layout.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/componentes.css" asp-append-version="true">
+<link rel="stylesheet" href="~/css/app.css" asp-append-version="true">
+@await RenderSectionAsync("Estilos", required: false)
+</head>
+<body>
+<div class="app">
+<a class="skip-link" href="#main">Saltar al contenido principal</a>
+
+<header class="cabecera">
+<div class="cabecera-barra">
+<a class="marca" href="/">
+<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#1B6B3A"></rect><path d="M20 7 32 13.5 20 20 8 13.5Z" fill="#FFFFFF"></path><path d="M8 19 20 25.5 32 19 32 22 20 28.5 8 22Z" fill="#B7E0C4"></path><path d="M8 25 20 31.5 32 25 32 28 20 34.5 8 28Z" fill="#F2A65A"></path></svg>
+<span class="marca-texto"><span class="marca-nombre">SIREI</span><span class="marca-subtitulo">Resolución de incidencias · SGFAL</span></span>
+</a>
+<span class="badge b-alert" title="Entorno de preproducción">Entorno PRE</span>
+<div class="cabecera-acciones">
+<a class="enlace-cau" href="tel:90560"><icono nombre="phone" />CAU · ext. 90560</a>
+<button class="btn btn-ghost usuario" type="button">
+<span class="sr-only">Menú de usuario: </span>
+<span class="avatar" aria-hidden="true">@usuario.Iniciales</span>
+<span class="usuario-datos"><span>@usuario.Nombre</span><span class="usuario-rol">@usuario.Rol</span></span>
+</button>
+</div>
+</div>
+</header>
+
+<div class="cuerpo">
+<nav class="menu-lateral" aria-label="Principal">
+<ul class="menu-lista">
+<li><a class="nav-link" href="/"><icono nombre="home" />Inicio</a></li>
+<li><a class="nav-link" href="/" aria-current="@(seccion == "incidencias" ? "page" : null)"><icono nombre="list" />Incidencias</a></li>
+<li><a class="nav-link" href="/Incidencias/Nueva" aria-current="@(seccion == "nueva" ? "page" : null)"><icono nombre="plus" />Nueva incidencia</a></li>
+<li><a class="nav-link" href="#main"><icono nombre="file-text" />Gestión de formularios</a></li>
+</ul>
+</nav>
+
+@RenderBody()
+</div>
+
+<footer class="pie">
+<span>SGFAL · SIREI v2.0</span>
+<span class="pie-enlaces"><a href="#main">Declaración de accesibilidad</a><a href="#main">Ayuda</a><a href="#main">Aviso legal</a></span>
+</footer>
+@await RenderSectionAsync("Dialogos", required: false)
+</div>
+<div id="anuncio" class="sr-only" aria-live="polite"></div>
+<script src="~/lib/htmx/htmx.min.js" asp-append-version="true"></script>
+<script src="~/js/sirei.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
