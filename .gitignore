@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 
 # Carpeta de versiones antiguas
 /old/
+
+# CSS minificado: lo genera la compilación a partir de cada .css (tarea MinificarCss del .csproj)
+src/**/wwwroot/css/*.min.css

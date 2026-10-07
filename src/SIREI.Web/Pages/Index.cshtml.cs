@@ -11,9 +11,15 @@ public class IndexModel(IIncidenciaServicio incidencias) : PageModel
     [BindProperty(SupportsGet = true)]
     public FiltroIncidencias Filtro { get; set; } = new();
 
-    /// <summary>Aviso que sobrevive a la redirección cuando no hay JavaScript.</summary>
-    [TempData]
-    public string? AvisoPendiente { get; set; }
+    /// <summary>
+    /// Aviso que sobrevive a la redirección cuando no hay JavaScript (TempData).
+    /// No se usa [TempData]: leería TempData en cada petición y la respuesta llevaría un Set-Cookie que impide cachearla.
+    /// </summary>
+    public string? AvisoPendiente
+    {
+        get => this.LeerTempDataSiHayCookie(nameof(AvisoPendiente));
+        set => TempData[nameof(AvisoPendiente)] = value;
+    }
 
     public ResultadoBusqueda Resultado { get; private set; } = default!;
 

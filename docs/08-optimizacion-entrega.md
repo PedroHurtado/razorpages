@@ -405,6 +405,96 @@ En el navegador (herramientas de desarrollo, F12):
 - Pestaña **Red** → al recargar, el CSS aparece como *(memory cache)* o *(disk cache)* sin petición al servidor.
 - Pestaña **Consola** → añadid a cualquier vista `<p style="color:red">prueba</p>`: el texto no sale en rojo y la consola muestra la violación de `style-src-attr`.
 
+## 8.10 Aplicación en SIREI
+
+Las mismas reglas están aplicadas en [src/SIREI.Web](../src/SIREI.Web/), salvo minificar JavaScript, que queda fuera. Este apartado recoge solo lo que cambia respecto a lo anterior y por qué.
+
+### CSP: de estilos inline a un CSS por página
+
+Al activar la política de 8.7, el layout y las páginas tenían 183 atributos `style=""` que el navegador ignoraba, y cargaban Google Fonts, que `style-src 'self'` bloquea. Se pasaron a clases **sin hacer una hoja monolítica**:
+
+| Fichero | Contenido |
+|---|---|
+| `fuentes.css` | Solo los `@font-face` |
+| `sirei.css` | Design system de los wireframes (sin tocar) |
+| `layout.css` | Estructura de `_Layout` y esqueleto de página: `.contenido`, `.migas`, `.columnas` |
+| `componentes.css` | Solo lo que usan dos o más páginas: aviso, tarjeta de mensaje, botonera |
+| `app.css` | Añadidos de comportamiento (`[hidden]`, `aria-busy`) |
+| `listado.css`, `formulario.css`, `consulta.css` | Cada página y sus parciales, enlazados desde su `@section Estilos` |
+
+Los nombres dicen qué es cada cosa (`.celda-sin-asignar`, `.barra-acciones`), no cómo se ve; no hay clases de utilidad. La parte de htmx (filtro de `hx-trigger` que necesitaba `eval`) está en [09-htmx-csp-estricta.md](09-htmx-csp-estricta.md).
+
+### Fuentes autoalojadas, con precarga y huella
+
+Atkinson Hyperlegible está en `wwwroot/fonts` (licencia OFL). Son fuentes variables, así que un `.woff2` por subconjunto cubre todos los pesos. Los `@font-face` usan `font-display: swap` (no bloquea el pintado) y `unicode-range` (latin-ext solo se descarga si hace falta). El layout precarga la que usan todas las páginas:
+
+```cshtml
+<link rel="preload" href="~/fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin asp-append-version="true">
+```
+
+El problema es que **el CSS no puede usar `asp-append-version`**: un `url("../fonts/x.woff2")` sin huella no es `immutable`, y si la precarga y el CSS piden URLs distintas, la fuente se descarga dos veces. La solución está en la compilación, en el [.csproj](../src/SIREI.Web/SIREI.Web.csproj):
+
+1. Un `StaticWebAssetFingerprintPattern` para `*.woff2`. Por defecto `MapStaticAssets` no pone huella a las fuentes.
+2. Al minificar, la tarea `MinificarCss` reescribe cada `url()` relativa con la huella del fichero: `url("../fonts/x.woff2")` → `url("../fonts/x.wm3e8jpykz.woff2")`.
+3. La huella de la fuente solo depende de la fuente, así que el `.min.css` sale con su contenido definitivo **antes** de que se calcule su propia huella. Se evita así la trampa de 8.2.
+4. Las fuentes están en los `Inputs` del target: si cambia una fuente, se vuelve a minificar el CSS.
+
+La huella se calcula con el mismo algoritmo que `MapStaticAssets`: SHA-256 del contenido, los 9 primeros bytes como entero little-endian **con signo**, su valor absoluto y 10 dígitos en base 36. El signo importa: con un entero sin signo, la huella sale bien en unos ficheros y mal en otros, según el bit alto del noveno byte. Por eso el target `VerificarHuellasCss` compara, **en cada compilación**, las huellas escritas en los `.min.css` con las que calcula el SDK. Si un día cambia el algoritmo, la compilación falla con un error que lo explica, en vez de servir fuentes con un 404.
+
+### TempData con `[TempData]`
+
+En 8.5 el `Set-Cookie` de TempData venía de un parcial. En SIREI venía de la propiedad `[TempData] AvisoPendiente` de los PageModel: el atributo lee TempData en **cada** petición y añade un `Set-Cookie` de borrado a todas las respuestas, así que ninguna se guardaba en caché. Se sustituyó por un acceso que solo lee TempData si la petición trae su cookie ([TempDataExtensions.cs](../src/SIREI.Web/Infraestructura/TempDataExtensions.cs)):
+
+```csharp
+public string? AvisoPendiente
+{
+    get => this.LeerTempDataSiHayCookie(nameof(AvisoPendiente));
+    set => TempData[nameof(AvisoPendiente)] = value;
+}
+```
+
+### El minificador de HTML y el espacio en blanco
+
+WebMarkupMin trata `<form>` como elemento de bloque y elimina el espacio en blanco que lo rodea. En el listado, el formulario "Asignarme" es `display: inline` y ese espacio separaba los botones "Asignarme" y "Ver", que quedaban pegados. La separación pasa a estar en el CSS (`margin-right`). Regla general: **no depender del espacio en blanco del HTML para el maquetado**.
+
+Los textos con `white-space: pre-line` (descripción de la incidencia, mensajes) conservan sus saltos de línea: WebMarkupMin no los colapsa dentro del texto.
+
+### Pipeline
+
+```csharp
+app.UseContentSecurityPolicy();       // 8.7
+app.UseStatusCodePagesWithReExecute("/Error", "?codigo={0}");
+app.UseRouting();
+app.UseAuthorization();               // antes que la caché: un acierto no debe saltarse la autorización
+app.UseOutputCache();                 // 8.5
+app.Use(/* invalidar tras POST */);   // 8.5
+app.UseWebMarkupMin();                // 8.4
+app.Use(/* quitar ETag/Last-Modified si immutable */);   // 8.3
+app.MapStaticAssets();
+app.MapRazorPages().WithStaticAssets().CacheOutput(CacheHtmlPolicy.Nombre);
+```
+
+La política está en [Infraestructura/CacheHtmlPolicy.cs](../src/SIREI.Web/Infraestructura/CacheHtmlPolicy.cs). El token antiforgery está en el `<meta name="csrf-token">` del layout, en todas las páginas, así que la clave de caché varía por la cookie antiforgery también en las páginas sin formulario.
+
+### Lo que se comprobó
+
+| Prueba | Resultado |
+|---|---|
+| Estilo calculado, posición, atributos y texto de cada elemento frente a la versión original, en 14 escenarios (oculto forzado a visible, diálogos abiertos, errores de validación) a 1366 y 390 px | Idéntico. Única diferencia: 0,2 px en la tabla del listado (4 px de margen frente a un espacio de 4,2 px) |
+| Consola en las 7 páginas, con un ciclo de refresco automático | Sin errores, sin violaciones CSP y sin avisos de precarga |
+| HTML de `/` | 16 593 → 12 835 bytes (−23 %) |
+| CSS y fuente con huella | `max-age=31536000, immutable`, sin `ETag` |
+| Precarga y `fuentes.min.css` | La misma URL con huella |
+| Output Cache, mismo usuario | `Age` a partir de la tercera petición, también en los fragmentos htmx |
+| Usuarios A y B | Tokens distintos; B con el token de A → `400` |
+| POST sin JavaScript (Post-Redirect-Get) | `302`, el aviso se muestra una vez y la siguiente petición vuelve a salir de caché |
+| Otro usuario tras el cambio | Ve el dato nuevo |
+
+### Pendiente
+
+- La guía de estilos (`Estilos.cshtml`) queda fuera: sigue con estilos inline y Google Fonts, y con la CSP se ve rota.
+- Los textos relativos ("hace 5 min") pueden ir hasta 60 s por detrás por la caché.
+
 ## Referencias
 
 > Enlaces comprobados el 6 de octubre de 2026.

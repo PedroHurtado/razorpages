@@ -31,7 +31,8 @@
 .celda-fecha{white-space:nowrap}
 .celda-sin-asignar{color:var(--c-text-muted)}
 .celda-acciones{text-align:right;white-space:nowrap}
-.celda-acciones form{display:inline}
+/* Separación entre "Asignarme" y "Ver" en el CSS: el espacio en blanco del HTML lo elimina el minificador */
+.celda-acciones form{display:inline;margin-right:4px}
 /* Paginación */
 .paginacion{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;border-top:1px solid var(--c-border)}
 .paginacion-tamano{display:flex;align-items:center;gap:10px}

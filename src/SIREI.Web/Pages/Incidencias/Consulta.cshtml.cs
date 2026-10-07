@@ -12,8 +12,15 @@ public class ConsultaModel(IIncidenciaServicio incidencias, TimeProvider reloj) 
     [FromRoute]
     public int Id { get; set; }
 
-    [TempData]
-    public string? AvisoPendiente { get; set; }
+    /// <summary>
+    /// Aviso que sobrevive a la redirección cuando no hay JavaScript (TempData).
+    /// No se usa [TempData]: leería TempData en cada petición y la respuesta llevaría un Set-Cookie que impide cachearla.
+    /// </summary>
+    public string? AvisoPendiente
+    {
+        get => this.LeerTempDataSiHayCookie(nameof(AvisoPendiente));
+        set => TempData[nameof(AvisoPendiente)] = value;
+    }
 
     public IncidenciaDetalle Incidencia { get; private set; } = default!;
 

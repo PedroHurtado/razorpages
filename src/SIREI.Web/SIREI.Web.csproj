@@ -11,4 +11,149 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Minifica el HTML que generan las páginas Razor en cada respuesta. -->
+    <PackageReference Include="WebMarkupMin.AspNetCoreLatest" Version="2.22.5" />
+    <!-- NUglify solo se usa al compilar (tarea MinificarCss, abajo): no se copia a bin ni se referencia desde el código. -->
+    <PackageReference Include="NUglify" Version="1.23.3" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <!--
+    MINIFICACIÓN DEL CSS AL COMPILAR: wwwroot/css/{nombre}.css → wwwroot/css/{nombre}.min.css
+    Se editan los .css; los .min.css se generan (están en .gitignore) y son los que enlazan las páginas.
+
+    Se engancha ANTES de ResolveProjectStaticWebAssets, que es donde MapStaticAssets calcula la huella
+    ({nombre}.min.{hash}.css). Si se minificara después, la huella iría una compilación por detrás del contenido y,
+    como la URL con huella se sirve con "immutable", el navegador podría quedarse un año con un CSS desfasado.
+
+    HUELLA DE LO QUE REFERENCIA EL CSS (fuentes): al minificar, cada url() relativa se reescribe con la huella del
+    fichero, url("../fonts/x.woff2") → url("../fonts/x.{hash}.woff2"), calculada con el mismo algoritmo que
+    MapStaticAssets. La huella de la fuente solo depende de la fuente, así que el .min.css sale con su contenido
+    definitivo antes de que se calcule su propia huella. VerificarHuellasCss comprueba en cada compilación
+    que coinciden con las de MapStaticAssets.
+  -->
+  <ItemGroup>
+    <CssMinificable Include="wwwroot\css\*.css" Exclude="wwwroot\css\*.min.css">
+      <Destino>%(RelativeDir)%(Filename).min.css</Destino>
+    </CssMinificable>
+    <!-- Ficheros que referencia el CSS: si cambian, hay que volver a minificar para actualizar su huella. -->
+    <ReferenciadoDesdeCss Include="wwwroot\fonts\*.woff2" />
+    <!-- Por defecto MapStaticAssets no pone huella a las fuentes: así se sirven como /fonts/x.{hash}.woff2 con "immutable". -->
+    <StaticWebAssetFingerprintPattern Include="Fuentes" Pattern="*.woff2" Expression="#[.{fingerprint}]" />
+  </ItemGroup>
+
+  <UsingTask TaskName="MinificarCss" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Origen ParameterType="System.String" Required="true" />
+      <Destino ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="$(PkgNUglify)\lib\netstandard2.0\NUglify.dll" />
+      <Using Namespace="NUglify" />
+      <Using Namespace="System.Numerics" />
+      <Using Namespace="System.Security.Cryptography" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var resultado = Uglify.Css(File.ReadAllText(Origen), Origen);
+        foreach (var e in resultado.Errors)
+        {
+            if (e.IsError)
+                Log.LogError("CSS", e.ErrorCode, null, Origen, e.StartLine, e.StartColumn, e.EndLine, e.EndColumn, e.Message);
+            else
+                Log.LogWarning("CSS", e.ErrorCode, null, Origen, e.StartLine, e.StartColumn, e.EndLine, e.EndColumn, e.Message);
+        }
+        if (resultado.HasErrors)
+            return false;
+
+        // url() relativas → nombre con huella. Las absolutas, data: y externas no se tocan.
+        var carpeta = Path.GetDirectoryName(Origen);
+        var codigo = Regex.Replace(resultado.Code, @"url\((['""]?)([^'""()]+)\1\)", m =>
+        {
+            var url = m.Groups[2].Value;
+            if (url.Contains(":") || url.StartsWith("/") || url.StartsWith("#"))
+                return m.Value;
+
+            var fichero = Path.GetFullPath(Path.Combine(carpeta, url));
+            if (!File.Exists(fichero))
+            {
+                Log.LogError("CSS", "CSSURL", null, Origen, 0, 0, 0, 0, "El CSS referencia un fichero que no existe: " + url);
+                return m.Value;
+            }
+
+            // Mismo algoritmo que la huella de MapStaticAssets: SHA-256 del contenido, 9 primeros bytes
+            // como entero little-endian CON signo, su valor absoluto, y 10 dígitos en base 36 (el menos significativo primero).
+            byte[] hash;
+            using (var sha = SHA256.Create())
+                hash = sha.ComputeHash(File.ReadAllBytes(fichero));
+            var bytes = new byte[9];
+            Array.Copy(hash, bytes, 9);
+            var n = BigInteger.Abs(new BigInteger(bytes));
+            const string digitos = "0123456789abcdefghijklmnopqrstuvwxyz";
+            var huella = new StringBuilder();
+            for (var i = 0; i < 10; i++)
+            {
+                huella.Append(digitos[(int)(n % 36)]);
+                n /= 36;
+            }
+
+            var extension = Path.GetExtension(url);
+            var conHuella = url.Substring(0, url.Length - extension.Length) + "." + huella + extension;
+            return "url(" + m.Groups[1].Value + conHuella + m.Groups[1].Value + ")";
+        });
+
+        if (!Log.HasLoggedErrors)
+            File.WriteAllText(Destino, codigo);
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <UsingTask TaskName="VerificarHuellasCss" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Css ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Assets ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var huellas = Assets.ToLookup(a => Path.GetFullPath(a.ItemSpec), a => a.GetMetadata("Fingerprint"), StringComparer.OrdinalIgnoreCase);
+        foreach (var css in Css.Where(c => File.Exists(c.ItemSpec)))
+        {
+            var carpeta = Path.GetDirectoryName(Path.GetFullPath(css.ItemSpec));
+            foreach (Match m in Regex.Matches(File.ReadAllText(css.ItemSpec), @"url\((['""]?)([^'""():]+)\.([0-9a-z]{10})(\.[0-9a-z]+)\1\)"))
+            {
+                var nombre = m.Groups[2].Value + m.Groups[4].Value;
+                var fichero = Path.GetFullPath(Path.Combine(carpeta, nombre));
+                if (!huellas[fichero].Contains(m.Groups[3].Value))
+                    Log.LogError("CSS", "CSSHUELLA", null, css.ItemSpec, 0, 0, 0, 0,
+                        "La huella de " + nombre + " (" + m.Groups[3].Value + ") no coincide con la de MapStaticAssets ("
+                        + string.Join(", ", huellas[fichero]) + "). ¿Ha cambiado el algoritmo de huella del SDK?");
+            }
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Inputs/Outputs: se vuelve a minificar si cambia algún .css o algún fichero que referencian. -->
+  <Target Name="MinificarCss" BeforeTargets="ResolveProjectStaticWebAssets"
+          Inputs="@(CssMinificable);@(ReferenciadoDesdeCss)" Outputs="@(CssMinificable->'%(Destino)')">
+    <MinificarCss Origen="%(CssMinificable.FullPath)" Destino="%(CssMinificable.Destino)" />
+
+    <!-- En una compilación limpia los .min.css no existían al evaluar el proyecto: se añaden a Content para
+         que MapStaticAssets los registre ya en esta compilación. -->
+    <ItemGroup>
+      <Content Include="@(CssMinificable->'%(Destino)')" Exclude="@(Content)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- En cada compilación, aunque no se haya minificado nada: detecta un cambio de algoritmo al actualizar el SDK. -->
+  <Target Name="VerificarHuellasCss" AfterTargets="ResolveProjectStaticWebAssets">
+    <VerificarHuellasCss Css="@(CssMinificable->'%(Destino)')" Assets="@(StaticWebAsset)" />
+  </Target>
+
+  <Target Name="LimpiarCssMinificado" AfterTargets="CoreClean">
+    <Delete Files="@(CssMinificable->'%(Destino)')" />
+  </Target>
+
 </Project>
