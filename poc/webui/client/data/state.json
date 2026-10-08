@@ -1,0 +1,14 @@
+{
+  "title": "WebUI + ASP.NET Core",
+  "server": { "runtime": "webui serve (estado de desarrollo)", "renderedAt": "-" },
+  "facts": [
+    { "label": "Motor", "value": "Microsoft.WebUI" },
+    { "label": "Modo", "value": "Desarrollo" }
+  ],
+  "boardHeading": "Tareas",
+  "items": [
+    { "id": "1", "title": "Compilar plantillas", "done": true },
+    { "id": "2", "title": "Renderizar desde C#", "done": false }
+  ],
+  "pendingCount": 1
+}

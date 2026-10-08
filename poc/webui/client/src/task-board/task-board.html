@@ -1,0 +1,23 @@
+<template shadowrootmode="open">
+  <section class="board">
+    <h2>{{heading}}</h2>
+
+    <form class="add" @submit="{onAdd(e)}">
+      <input w-ref="{newTitle}" name="title" placeholder="Nueva tarea" aria-label="Nueva tarea" required />
+      <button type="submit">Añadir</button>
+    </form>
+
+    <ul class="list">
+      <for each="item in items">
+        <li key="{{item.id}}" data-done="{{item.done}}">
+          <label>
+            <input type="checkbox" ?checked="{{item.done}}" @change="{onToggle(item.id)}" />
+            <span>{{item.title}}</span>
+          </label>
+        </li>
+      </for>
+    </ul>
+
+    <p class="summary">Pendientes: {{pendingCount}}</p>
+  </section>
+</template>

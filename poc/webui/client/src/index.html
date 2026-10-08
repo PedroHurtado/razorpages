@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1d2330;
+      --muted: #5b6475;
+      --border: #dde1e8;
+      --accent: #0f6cbd;
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14171c;
+        --surface: #1d2129;
+        --text: #e6e9ef;
+        --muted: #9aa3b2;
+        --border: #2e3440;
+        --accent: #4aa3ff;
+      }
+    }
+
+    body {
+      margin: 0 auto;
+      max-width: 860px;
+      padding: 24px 16px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: 0;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>{{title}}</h1>
+    <p>Renderizado por {{server.runtime}} el {{server.renderedAt}}</p>
+  </header>
+
+  <section class="cards" aria-label="Datos del servidor">
+    <for each="fact in facts">
+      <info-card label="{{fact.label}}" value="{{fact.value}}"></info-card>
+    </for>
+  </section>
+
+  <task-board heading="{{boardHeading}}"></task-board>
+
+  <script type="module" src="/index.js"></script>
+</body>
+
+</html>

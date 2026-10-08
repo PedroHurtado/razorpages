@@ -1,0 +1,20 @@
+{
+  "name": "sirei-webui-poc-client",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:client && npm run build:protocol",
+    "build:client": "node build-client.mjs",
+    "build:protocol": "webui build ./src --plugin=webui --projection-manifest ./dist/webui-projection.json --out ./dist",
+    "dev": "webui serve ./src --state ./data/state.json --plugin=webui --projection-manifest ./dist/webui-projection.json --servedir ./dist --port 3000 --watch"
+  },
+  "dependencies": {
+    "@microsoft/webui": "0.0.26",
+    "@microsoft/webui-framework": "0.0.26"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "typescript": "^6.0.3"
+  }
+}

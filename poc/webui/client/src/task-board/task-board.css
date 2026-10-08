@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.board {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.add input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+}
+
+.add button {
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.list li[data-done="true"] span {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.summary {
+  color: var(--muted);
+  margin-bottom: 0;
+}
