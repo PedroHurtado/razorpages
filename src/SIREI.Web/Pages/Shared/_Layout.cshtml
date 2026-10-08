@@ -21,6 +21,11 @@
 <link rel="stylesheet" href="~/css/componentes.min.css" asp-append-version="true">
 <link rel="stylesheet" href="~/css/app.min.css" asp-append-version="true">
 @await RenderSectionAsync("Estilos", required: false)
+@* defer: se descargan en paralelo desde el principio y se ejecutan en orden al terminar el análisis del HTML.
+   La sección Scripts también debe usar defer y no admite scripts inline que dependan de htmx *@
+<script src="~/lib/htmx/htmx.min.js" asp-append-version="true" defer></script>
+<script src="~/js/sirei.js" asp-append-version="true" defer></script>
+@await RenderSectionAsync("Scripts", required: false)
 </head>
 <body>
 <div class="app">
@@ -64,8 +69,5 @@
 @await RenderSectionAsync("Dialogos", required: false)
 </div>
 <div id="anuncio" class="sr-only" aria-live="polite"></div>
-<script src="~/lib/htmx/htmx.min.js" asp-append-version="true"></script>
-<script src="~/js/sirei.js" asp-append-version="true"></script>
-@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
