@@ -54,6 +54,7 @@
       margin-bottom: 24px;
     }
   </style>
+  <script type="module" async src="/streaming.js"></script>
 </head>
 
 <body>
@@ -62,15 +63,21 @@
     <p>Renderizado por {{server.runtime}} el {{server.renderedAt}}</p>
   </header>
 
+  <!-- Each boundary is flushed as soon as the server has its state.
+       A boundary may wrap a whole <for>, but cannot sit inside one. -->
   <section class="cards" aria-label="Datos del servidor">
-    <for each="fact in facts">
-      <info-card label="{{fact.label}}" value="{{fact.value}}"></info-card>
-    </for>
+    <boundary name="facts">
+      <for each="fact in facts">
+        <info-card label="{{fact.label}}" value="{{fact.value}}"></info-card>
+      </for>
+    </boundary>
   </section>
 
-  <task-board heading="{{boardHeading}}"></task-board>
+  <boundary name="tasks">
+    <task-board heading="{{boardHeading}}"></task-board>
+  </boundary>
 
-  <script type="module" src="/index.js"></script>
+  <script type="module" src="/index.js" fetchpriority="low"></script>
 </body>
 
 </html>

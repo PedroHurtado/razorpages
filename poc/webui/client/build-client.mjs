@@ -6,13 +6,13 @@ import { esbuildProjection } from '@microsoft/webui/projection.js';
 const watch = process.argv.includes('--watch');
 
 const options = {
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/streaming.ts', 'src/index.ts'],
   outdir: 'dist',
   bundle: true,
   format: 'esm',
   splitting: true,
   minify: !watch,
-  sourcemap: watch,
+  sourcemap: true,
   metafile: true,
   plugins: [esbuildProjection()],
 };
