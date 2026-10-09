@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.WebEncoders;
 using Microsoft.Net.Http.Headers;
@@ -17,6 +18,14 @@ builder.Services.AddRazorPages();
 builder.Services.Configure<WebEncoderOptions>(o => o.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All));
 builder.Services.AddServiciosFake();
 
+// La aplicación va detrás del gateway (SIREI.Gateway, YARP). El gateway envía la IP, el esquema y el host
+// originales en X-Forwarded-For/Proto/Host; se aceptan solo si vienen de un proxy conocido (por defecto, localhost).
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost);
+
+// /health: el gateway lo consulta para saber si puede enviar tráfico a esta instancia.
+builder.Services.AddHealthChecks();
+
 // Minificación del HTML generado por Razor (quita espacios, comentarios, comillas innecesarias...).
 // Por defecto WebMarkupMin no actúa en Development; se activa para que desarrollo se comporte como producción.
 // DisablePoweredByHttpHeaders: no enviar "X-HTML-Minification-Powered-By: WebMarkupMin"
@@ -32,6 +41,9 @@ builder.Services.AddWebMarkupMin(o =>
 builder.Services.AddOutputCache(o => o.AddPolicy(CacheHtmlPolicy.Nombre, new CacheHtmlPolicy()));
 
 var app = builder.Build();
+
+// Lo primero: todo lo que sigue (HSTS, redirecciones, enlaces absolutos) debe ver la petición original, no la del gateway.
+app.UseForwardedHeaders();
 
 // Al principio: así también la llevan las páginas de error, las de UseStatusCodePages y los aciertos del Output Cache
 app.UseContentSecurityPolicy();
@@ -90,6 +102,8 @@ app.Use((context, next) =>
     });
     return next(context);
 });
+
+app.MapHealthChecks("/health");
 
 // Ficheros de wwwroot optimizados (compresión, caché, huella en el nombre).
 app.MapStaticAssets();
